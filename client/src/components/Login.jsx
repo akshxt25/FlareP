@@ -1,172 +1,192 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from "react";
 
-const LoginPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+const Login = () => {
+  const [formData, setFormData] = useState({ 
+    role: "creator",
+    email: "",
+    password: "" 
   });
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const users = localStorage.getItem('users');
-    if (!users) {
+  const handleRoleToggle = (role) => {
+    setFormData(prev => ({ ...prev, role }));
+    setError(null);
+  };
 
-      const tempUsers = [
-        { email: 'test@example.com', password: 'password123' }
-      ];
-      localStorage.setItem('users', JSON.stringify(tempUsers));
-    }
-  }, []);
+  const handleChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
-    if (isLogin) {
-      
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find(u => u.email === formData.email);
-      
-      if (user && user.password === formData.password) {
-        if (rememberMe) {
-          localStorage.setItem('currentUser', JSON.stringify(user));
-        }
-        alert('Login successful!');
-      } else {
-        setError('Invalid email or password');
-      }
-    } else {
-
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      if (users.some(u => u.email === formData.email)) {
-        setError('Email already exists');
+    if (formData.role === "editor" && (!formData.email || !formData.password)) {
+      setError("Please fill all fields");
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        setError(data.message);
         return;
       }
-      
-      users.push(formData);
-      localStorage.setItem('users', JSON.stringify(users));
-      alert('Signup successful! Please login.');
-      setIsLogin(true);
+      window.location.href = "/";
+    } catch (e) {
+      setError("Error while calling backend");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-         <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24">
-        <div className="mx-auto w-full max-w-sm">
-          <div className="mb-8">
-            <img src="/api/placeholder/40/40" alt="Logo" className="h-10 w-10" />
-            <h2 className="mt-6 text-3xl font-bold text-gray-900">
-              {isLogin ? 'Welcome back' : 'Create account'}
-            </h2>
-          </div>
+    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Left Section */}
+      <div className="w-1/2 h-full bg-black text-white flex flex-col justify-between p-16 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute w-96 h-96 -top-48 -left-48 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-3xl"></div>
+          <div className="absolute w-96 h-96 -bottom-48 -right-48 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="relative space-y-4">
+          <h1 className="text-6xl font-bold tracking-tight bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            FlarePP
+          </h1>
+          <p className="text-gray-400 text-lg">Your creative journey starts here</p>
+        </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="text-red-600 text-sm">{error}</div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                type="email"
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-              />
-            </div>
-
-            {isLogin && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                  />
-                  <label className="ml-2 block text-sm text-gray-900">
-                    Remember for 30 days
-                  </label>
-                </div>
-                <div className="text-sm">
-                  <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-                    Forgot password?
-                  </a>
-                </div>
-              </div>
-            )}
-
-            <div>
-              <button
-                type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
-              >
-                {isLogin ? 'Sign in' : 'Sign up'}
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-50 text-gray-500">or</span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <button className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                <img src="/api/placeholder/20/20" alt="Google" className="h-5 w-5 mr-2" />
-                Sign in with Google
-              </button>
-            </div>
-          </div>
-
-          <p className="mt-6 text-center text-sm text-gray-600">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              {isLogin ? 'Sign up' : 'Sign in'}
-            </button>
+        <div className="relative space-y-6">
+          <p className="text-3xl font-light leading-relaxed bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            INTERACT AND UPLOAD YOUR YOUTUBE VIDEOS SEAMLESSLY.
           </p>
+          
         </div>
       </div>
 
-      <div className="hidden lg:block relative flex-1">
-        <div className="absolute inset-0 bg-indigo-100">
-          <img
-            src="/api/placeholder/800/600"
-            alt="Background"
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black bg-opacity-10" />
-          <div className="absolute bottom-0 left-0 right-0 p-12 text-white">
-            <h2 className="text-4xl font-bold">Bring your skills.</h2>
-            <p className="mt-2 text-lg">
-              Sign up for free and enjoy access to all features for 30 days.
+      {/* Right Section */}
+      <div className="w-1/2 h-full flex items-center justify-center p-16">
+        <div className="w-full max-w-md transform transition-all duration-300 hover:scale-[1.01]">
+          <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-10 border border-gray-100">
+            <div className="text-center space-y-3 mb-10">
+              <h2 className="text-3xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                Welcome Back
+              </h2>
+              <p className="text-gray-600">
+                Your gateway to secure and seamless video uploading
+              </p>
+            </div>
+
+            {/* Role Toggle */}
+            <div className="space-y-3 mb-10">
+              <label className="text-sm font-medium text-gray-700">Select your role</label>
+              <div className="flex gap-3 p-1.5 rounded-xl bg-gray-100/80 backdrop-blur-sm">
+                <button
+                  onClick={() => handleRoleToggle("creator")}
+                  className={`flex-1 py-3.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    formData.role === "creator"
+                      ? "bg-black text-white shadow-md"
+                      : "bg-transparent text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Creator
+                </button>
+                <button
+                  onClick={() => handleRoleToggle("editor")}
+                  className={`flex-1 py-3.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    formData.role === "editor"
+                      ? "bg-black text-white shadow-md"
+                      : "bg-transparent text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  Editor
+                </button>
+              </div>
+            </div>
+
+            <div className="overflow-hidden transition-all duration-500 ease-in-out" 
+                 style={{ 
+                   maxHeight: formData.role === "editor" ? "400px" : "0",
+                   opacity: formData.role === "editor" ? "1" : "0",
+                   marginBottom: formData.role === "editor" ? "2rem" : "0"
+                 }}>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2 transform transition-all duration-500 ease-in-out translate-y-0">
+                  <label className="text-sm font-medium text-gray-700">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring focus:ring-gray-200 transition-all outline-none"
+                    placeholder="Enter your email"
+                  />
+                </div>
+                <div className="space-y-2 transform transition-all duration-500 ease-in-out translate-y-0">
+                  <label className="text-sm font-medium text-gray-700">Password</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring focus:ring-gray-200 transition-all outline-none"
+                    placeholder="Enter your password"
+                  />
+                </div>
+              </form>
+
+              <div className="relative my-8">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white text-gray-500">
+                    or continue with
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full flex items-center justify-center px-4 py-4 rounded-xl text-gray-700 bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 hover:border-gray-300 disabled:opacity-70"
+            >
+              <img
+                src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/google-black-icon.png"
+                alt="Google"
+                className="w-5 h-5 mr-3"
+              />
+              <span className="font-medium">Sign in with Google</span>
+            </button>
+
+            {error && (
+              <div className="mt-4 text-sm text-red-500 text-center">
+                {error}
+              </div>
+            )}
+
+            <p className="mt-10 text-sm text-gray-500 text-center">
+              By clicking continue, you agree to our{" "}
+              <button className="font-medium text-gray-700 hover:text-black transition-colors">
+                Terms of Service
+              </button>{" "}
+              and{" "}
+              <button className="font-medium text-gray-700 hover:text-black transition-colors">
+                Privacy Policy
+              </button>
+              .
             </p>
           </div>
         </div>
@@ -175,4 +195,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default Login;
