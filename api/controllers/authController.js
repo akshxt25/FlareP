@@ -44,7 +44,8 @@ export const login = async (req, res) => {
             httpOnly: true,       // Ensures the cookie works for navigation within the same site
         };
 
-
+        console.log("login successful");
+        
         res.cookie("accessToken", token, options).status(200).json({
             success: true,
             user: rest,
@@ -139,7 +140,7 @@ export const loginWithGoogle = async (req, res) => {
 
 export const signup = async (req, res) => {
 
-    const { fullName, email, password, role } = req.body
+    const { name, email, password, role } = req.body
     if (!role) {
         return res.status(401).json({
             success: false,
@@ -160,8 +161,8 @@ export const signup = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 7);
         const newUser = new Model({
-            name: fullName,
-            username: fullName.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4),
+            name: name,
+            username: name.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4),
             email,
             password: hashedPassword,
             role: role,
