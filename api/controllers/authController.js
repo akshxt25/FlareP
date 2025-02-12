@@ -66,7 +66,7 @@ export const login = async (req, res) => {
 
 export const loginWithGoogle = async (req, res) => {
     
-    const {fullName, email, role } = req.body;
+    const {name, email, role } = req.body;
     console.log(req.body);
     if (!role) {
         return res.status(401).json({
@@ -108,7 +108,7 @@ export const loginWithGoogle = async (req, res) => {
             const hashedPassword = await bcrypt.hash(generatedPassword, 7);
 
             const newUser = new Model({
-                name: fullName,
+                name: name,
                 username: fullName.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4),
                 email,
                 password: hashedPassword,

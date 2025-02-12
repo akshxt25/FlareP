@@ -1,13 +1,25 @@
 import { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LucideLoader, LucideChevronRight, LucideArrowLeft } from "lucide-react";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ 
     role: "creator",
     email: "",
-    password: "" 
+    password: "",
+    name: ""
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isSignup, setIsSignup] = useState(false);
 
   const handleRoleToggle = (role) => {
     setFormData(prev => ({ ...prev, role }));
@@ -21,181 +33,241 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+    try {
+      window.location.href = "http://localhost:3000/api/auth/google";
+    } catch (e) {
+      setError("Failed to connect with Google");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditorSubmit = async (e) => {
     e.preventDefault();
-    if (formData.role === "editor" && (!formData.email || !formData.password)) {
-      setError("Please fill all fields");
+    if (!formData.email || !formData.password) {
+      setError("Please fill all required fields");
       return;
     }
+    
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        credentials: "include",
+      const endpoint = isSignup ? "api/auth/signup" : "api/auth/login";
+      const response = await axios.post(`http://localhost:3000/${endpoint}`, formData, {
+        withCredentials: true,
         headers: {
           "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+        }
       });
-      const data = await res.json();
-      if (data.success === false) {
-        setError(data.message);
+      
+      if (response.data.success === false) {
+        setError(response.data.message);
         return;
       }
-      window.location.href = "/";
+
+      if (formData.role === "editor" && !isSignup) {
+        navigate("/Home");
+      } else {
+        navigate("/");
+      }
     } catch (e) {
-      setError("Error while calling backend");
+      setError(`Error: ${e.response?.data?.message || e.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="grid min-h-screen lg:grid-cols-2">
       {/* Left Section */}
-      <div className="w-1/2 h-full bg-black text-white flex flex-col justify-between p-16 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute w-96 h-96 -top-48 -left-48 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute w-96 h-96 -bottom-48 -right-48 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full blur-3xl animate-pulse"></div>
-        </div>
+      <div className="hidden lg:flex flex-col justify-between p-8 md:p-12 lg:p-16 bg-black text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,_rgba(64,64,64,0.5)_0%,_transparent_70%)]" />
         
-        <div className="relative space-y-4">
-          <h1 className="text-6xl font-bold tracking-tight bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+        <div className="relative space-y-4 z-10">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
             FlarePP
           </h1>
-          <p className="text-gray-400 text-lg">Your creative journey starts here</p>
+          <p className="text-gray-400 text-base md:text-lg">
+            Your creative journey starts here
+          </p>
         </div>
 
-        <div className="relative space-y-6">
-          <p className="text-3xl font-light leading-relaxed bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+        <div className="relative space-y-6 z-10">
+          <p className="text-xl md:text-2xl lg:text-3xl font-light leading-relaxed">
             INTERACT AND UPLOAD YOUR YOUTUBE VIDEOS SEAMLESSLY.
           </p>
         </div>
       </div>
 
       {/* Right Section */}
-      <div className="w-1/2 h-full flex items-center justify-center p-8">
-        <div className="w-full max-w-md transform transition-all duration-300 hover:scale-[1.01]">
-          <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-xl p-8 border border-gray-100">
-            <div className="text-center space-y-2 mb-8">
-              <h2 className="text-2xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Welcome Back
-              </h2>
-              <p className="text-sm text-gray-600">
-                Your gateway to secure and seamless video uploading
-              </p>
-            </div>
-
-            {/* Role Toggle */}
-            <div className="space-y-2 mb-6">
-              <label className="text-sm font-medium text-gray-700">Select your role</label>
-              <div className="flex gap-2 p-1 rounded-lg bg-gray-100/80 backdrop-blur-sm">
-                <button
-                  onClick={() => handleRoleToggle("creator")}
-                  className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-[1.02] ${
-                    formData.role === "creator"
-                      ? "bg-black text-white shadow-md"
-                      : "bg-transparent text-gray-600 hover:bg-gray-200"
-                  }`}
+      <div className="flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12 bg-gray-50/50">
+        <Card className="w-full max-w-md shadow-lg border-0">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-medium">
+              {isSignup ? "Create Account" : "Welcome Back"}
+            </CardTitle>
+            <CardDescription>
+              {isSignup ? "Join our creative community today" : "Sign in to your account"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Tabs 
+              defaultValue="creator" 
+              onValueChange={handleRoleToggle}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger 
+                  value="creator"
+                  className="transition-colors duration-300 data-[state=active]:bg-black data-[state=active]:text-white"
                 >
                   Creator
-                </button>
-                <button
-                  onClick={() => handleRoleToggle("editor")}
-                  className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-[1.02] ${
-                    formData.role === "editor"
-                      ? "bg-black text-white shadow-md"
-                      : "bg-transparent text-gray-600 hover:bg-gray-200"
-                  }`}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="editor"
+                  className="transition-colors duration-300 data-[state=active]:bg-black data-[state=active]:text-white"
                 >
                   Editor
-                </button>
-              </div>
-            </div>
+                </TabsTrigger>
+              </TabsList>
 
-            <div className="overflow-hidden transition-all duration-500 ease-in-out" 
-                 style={{ 
-                   maxHeight: formData.role === "editor" ? "400px" : "0",
-                   opacity: formData.role === "editor" ? "1" : "0",
-                   marginBottom: formData.role === "editor" ? "1.5rem" : "0"
-                 }}>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5 transform transition-all duration-500 ease-in-out translate-y-0">
-                  <label className="text-sm font-medium text-gray-700">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring focus:ring-gray-200 transition-all outline-none text-sm"
-                    placeholder="Enter your email"
-                  />
+              <TabsContent value="creator" className="mt-6">
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600 text-center">
+                    Sign in with Google to manage your videos
+                  </p>
+                  <Button
+                    onClick={handleGoogleAuth}
+                    disabled={loading}
+                    className="w-full bg-black hover:bg-gray-900 transition-colors duration-300"
+                  >
+                    {loading ? (
+                      <>
+                        <LucideLoader className="mr-2 h-4 w-4 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <img
+                          src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/google-white-icon.png"
+                          alt="Google"
+                          className="w-4 h-4 mr-2"
+                        />
+                        Continue with Google
+                      </>
+                    )}
+                  </Button>
                 </div>
-                <div className="space-y-1.5 transform transition-all duration-500 ease-in-out translate-y-0">
-                  <label className="text-sm font-medium text-gray-700">Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring focus:ring-gray-200 transition-all outline-none text-sm"
-                    placeholder="Enter your password"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-black text-white py-2.5 rounded-lg font-medium text-sm transition-all duration-300 transform hover:scale-[1.02] hover:bg-gray-900 disabled:opacity-70 disabled:hover:scale-100"
-                >
-                  {loading ? "Signing in..." : "Sign in"}
-                </button>
-              </form>
+              </TabsContent>
 
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500 text-sm">
-                    or continue with
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full flex items-center justify-center px-4 py-3 rounded-lg text-gray-700 bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-[1.02] hover:border-gray-300 disabled:opacity-70 disabled:hover:scale-100"
-            >
-              <img
-                src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/google-black-icon.png"
-                alt="Google"
-                className="w-4 h-4 mr-3"
-              />
-              <span className="font-medium text-sm">Sign in with Google</span>
-            </button>
+              <TabsContent value="editor" className="mt-6">
+                <form onSubmit={handleEditorSubmit} className="space-y-4">
+                  {isSignup && (
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Name</Label>
+                      <Input
+                        id="name"
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Enter your full name"
+                        className="transition-all duration-300"
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="Enter your email"
+                      className="transition-all duration-300"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Enter your password"
+                      className="transition-all duration-300"
+                    />
+                  </div>
+                  
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-black hover:bg-gray-900 transition-colors duration-300"
+                  >
+                    {loading ? (
+                      <>
+                        <LucideLoader className="mr-2 h-4 w-4 animate-spin" />
+                        {isSignup ? "Creating account..." : "Signing in..."}
+                      </>
+                    ) : (
+                      <>
+                      
+                        {isSignup ? "Sign up" : "Sign in"}
+                        <LucideChevronRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
 
             {error && (
-              <div className="mt-4 text-sm text-red-500 text-center animate-bounce">
-                {error}
-              </div>
+              <Alert variant="destructive" className="mt-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
-
-            <p className="mt-6 text-xs text-gray-500 text-center">
-              By clicking continue, you agree to our{" "}
-              <button className="font-medium text-gray-700 hover:text-black transition-colors">
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4">
+            {formData.role === "editor" && (
+              <Button 
+                variant="link" 
+                onClick={() => {
+                  setIsSignup(!isSignup);
+                  setError(null);
+                }}
+                className="text-sm text-gray-600 hover:text-black transition-colors duration-300"
+              >
+                {isSignup ? (
+                  <span className="flex items-center">
+                    <LucideArrowLeft className="mr-1 h-3 w-3" />
+                    Already have an account? Sign in
+                  </span>
+                ) : (
+                  <span className="flex items-center">
+                    Don't have an account? Sign up
+                    <LucideChevronRight className="ml-1 h-3 w-3" />
+                  </span>
+                )}
+              </Button>
+            )}
+            
+            <p className="text-xs text-gray-500 text-center">
+              By continuing, you agree to our{" "}
+              <Button variant="link" className="p-0 h-auto text-xs font-medium text-gray-700 hover:text-black transition-colors duration-300">
                 Terms of Service
-              </button>{" "}
+              </Button>{" "}
               and{" "}
-              <button className="font-medium text-gray-700 hover:text-black transition-colors">
+              <Button variant="link" className="p-0 h-auto text-xs font-medium text-gray-700 hover:text-black transition-colors duration-300">
                 Privacy Policy
-              </button>
-              .
+              </Button>.
             </p>
-          </div>
-        </div>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
