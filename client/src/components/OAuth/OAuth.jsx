@@ -94,13 +94,15 @@ const OAuth = ({ role }) => {
     };
 
     return (
-        <button
+        <div className="flex items-center justify-center">
+            <button
             onClick={handleGoogleClick}
             type="button"
-            className="bg-red-700 text-white p-3 rounded-lg uppercase hover:opacity-95 flex-1"
+            className="bg-black text-white p-3 rounded-lg uppercase hover:opacity-95 flex-1"
         >
             Continue With Google
         </button>
+        </div>
     );
 };
 
