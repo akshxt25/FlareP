@@ -11,7 +11,7 @@ const ProtectedRoute = ({ children, allowedRole }) => {
   const user = useSelector((state) => state.user);
 
   if (!user.user || !user.role) {
-    console.log('No user found, redirecting to login');
+    console.log('No user foud, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
