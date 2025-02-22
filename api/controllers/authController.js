@@ -188,14 +188,12 @@ export const signup = async (req, res) => {
 
 export const logout = async (req, res) => {
     console.log("hi");
-    
-    try{
+    try {
         console.log("abc", req.cookies.accessToken);
         res.clearCookie('accessToken');
         res.status(200).json('User has been logged out!');
+    } catch (e) {
+        console.log("error");
+        res.status(500).json({ error: 'Logout failed' });
     }
-    catch(e){
-        console.log("eror");
-        
-    }
-}
+};

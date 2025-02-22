@@ -5,9 +5,7 @@ const router = express.Router();
 
 router.post("/login", login);
 router.post("/signup", signup);
-router.get("/logout", (req,res)=>{
-    console.log("adf");
-}, logout);
+router.get("/logout",  logout);
 
 router.post("/loginwithGoogle",loginWithGoogle);
 
