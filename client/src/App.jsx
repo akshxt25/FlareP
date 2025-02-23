@@ -52,8 +52,7 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-            
-            {/* Catch all route - redirects to login */}
+
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </BrowserRouter>

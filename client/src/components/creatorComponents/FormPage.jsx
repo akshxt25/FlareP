@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "../../hooks/use-toast";
+import axios from "axios";
 import {
   Command,
   CommandEmpty,
@@ -29,7 +31,9 @@ import {
 import AssignEditor from "./AssignEditor";
 import { cn } from "@/lib/utils";
 
-const FormPage = ({ onClose }) => {
+const FormPage = ({ onClose, onVideoSubmit }) => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedEditor, setSelectedEditor] = useState(null);
   const [formData, setFormData] = useState({
@@ -41,6 +45,67 @@ const FormPage = ({ onClose }) => {
     thumbnail: null,
     shortDescription: "",
   });
+
+  // ... existing code ...
+
+const handleSubmit = async () => {
+  setIsSubmitting(true);
+  
+  try {
+    const formDataToSend = new FormData();
+    
+    // Append all form fields
+    formDataToSend.append('title', formData.title);
+    formDataToSend.append('description', formData.description);
+    formDataToSend.append('shortDescription', formData.shortDescription);
+    
+    // Append files with correct field names
+    if (formData.video) {
+      formDataToSend.append('videofile', formData.video);
+    }
+    if (formData.thumbnail) {
+      formDataToSend.append('thumbnail', formData.thumbnail);
+    }
+    
+    if (selectedEditor) {
+      formDataToSend.append('editorId', selectedEditor);
+    }
+
+    const response = await axios.post(
+      'http://localhost:3000/api/creator/creator-upload-video',
+      formDataToSend,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        withCredentials: true // Important: This ensures cookies are sent with the request
+      }
+    );
+
+    toast({
+      title: "Success!",
+      description: "Video uploaded successfully",
+      variant: "default",
+    });
+
+    // Call the callback to update parent component
+    if (onVideoSubmit) {
+      onVideoSubmit(response.data);
+    }
+
+    onClose();
+  } catch (error) {
+    console.error('Upload error:', error);
+    toast({
+      title: "Error",
+      description: error.response?.data?.message || "Failed to upload video",
+      variant: "destructive",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   // Mock editors data
   const editors = [
@@ -135,19 +200,7 @@ const FormPage = ({ onClose }) => {
             className="h-32 bg-gradient-to-b from-zinc-900 to-zinc-800 border-zinc-700 focus:border-zinc-500"
           />{" "}
         </div>{" "}
-        <div className="flex items-center space-x-2 bg-zinc-900/50 p-4 rounded-lg">
-          {" "}
-          <Checkbox
-            id="playlist"
-            checked={formData.inPlaylist}
-            onCheckedChange={(checked) =>
-              setFormData((prev) => ({ ...prev, inPlaylist: checked }))
-            }
-          />{" "}
-          <Label htmlFor="playlist" className="text-zinc-400">
-            Add to playlist
-          </Label>{" "}
-        </div>{" "}
+        
       </div>
     </div>
   );
@@ -371,7 +424,7 @@ const FormPage = ({ onClose }) => {
             <Button
               variant="outline"
               onClick={() => setCurrentStep((prev) => prev - 1)}
-              disabled={currentStep === 1}
+              disabled={currentStep === 1 || isSubmitting}
               className="border-zinc-700 hover:bg-zinc-800"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -380,16 +433,26 @@ const FormPage = ({ onClose }) => {
             <Button
               onClick={() => {
                 if (currentStep === 4) {
-                  console.log("Form submitted:", formData);
-                  onClose();
+                  handleSubmit();
                 } else {
                   setCurrentStep((prev) => prev + 1);
                 }
               }}
+              disabled={isSubmitting}
               className="bg-gradient-to-r from-zinc-700 to-zinc-600 hover:from-zinc-600 hover:to-zinc-500"
             >
-              {currentStep === 4 ? "Submit" : "Next"}
-              {currentStep !== 4 && <ArrowRight className="h-4 w-4 ml-2" />}
+              {currentStep === 4 ? (
+                isSubmitting ? (
+                  "Uploading..."
+                ) : (
+                  "Submit"
+                )
+              ) : (
+                <>
+                  Next
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </>
+              )}
             </Button>
           </div>
         </CardContent>

@@ -9,6 +9,8 @@ import axios from "axios";
 const youtube = google.youtube("v3");
 
 export async function uploadVideo(req, res) {
+  console.log("upload fn");
+  
   try {
     const { title, description } = req.body;
     if (req.user.role != "creator") {
@@ -48,7 +50,8 @@ export async function uploadVideo(req, res) {
       { new: true }
     );
 
-    console.log(updatedCreator);
+    console.log("video is updated in backend");
+    
 
     return res.status(201).json({
       message: "Video uploaded successfully",

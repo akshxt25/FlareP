@@ -1,10 +1,10 @@
 import jwt from "jsonwebtoken";
 
 export async function auth(req,res,next) {
+    console.log("before middleware fn");
     
-    try{
-        
-        const token = await req.cookies.accessToken;
+    try{    
+        const token =  req.cookies.accessToken;
         console.log(token);
 
         if (!token) {
@@ -13,7 +13,7 @@ export async function auth(req,res,next) {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         
         req.user = decodedToken;
-        console.log("mk");
+        console.log("after verifying middleware");
         
         
         next();
