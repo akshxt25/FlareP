@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "@/redux/reducers/userSlice"; // Updated import path based on your structure
 
-const CLIENT_ID = "173852556484-3c302oeh2nqs108mqhn936f8sn5m6fs7.apps.googleusercontent.com";
+const CLIENT_ID = "1070659531713-qqi21m3i7numnrd1t7fv6ocnq3ju81p6.apps.googleusercontent.com";
 const SCOPES = "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/youtube.upload";
 
 const OAuth = ({ role, onLoginStart, onLoginSuccess, onLoginError }) => {
@@ -109,7 +109,7 @@ const OAuth = ({ role, onLoginStart, onLoginSuccess, onLoginError }) => {
 
     const callBackend = async (role, userDetails, accessToken) => {
         try {
-            const response = await fetch("http://localhost:3000/api/auth/loginwithGoogle", {
+            const response = await fetch("https://flarep.onrender.com/api/auth/loginwithGoogle", {
                 method: "POST",
                 credentials: "include",
                 headers: {
