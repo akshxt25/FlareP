@@ -72,7 +72,7 @@ const handleSubmit = async () => {
     }
 
     const response = await axios.post(
-      'http://localhost:3000/api/creator/creator-upload-video',
+      'https://flarep.onrender.com/api/creator/creator-upload-video',
       formDataToSend,
       {
         headers: {

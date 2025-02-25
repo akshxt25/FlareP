@@ -36,7 +36,7 @@ const AssignEditor = ({ selectedEditor, setSelectedEditor }) => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await axios.get('http://localhost:3000/api/creator/getEditors');
+      const response = await axios.get('https://flarep.onrender.com/api/creator/getEditors');
       
       const validEditors = (response.data.editors || []).filter(editor => 
         editor && editor._id && editor.name

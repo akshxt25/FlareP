@@ -45,7 +45,7 @@ const ContentSection = () => {
   
     const fetchVideos = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/creator/creator-get-videos', {
+        const response = await axios.get('https://flarep.onrender.com/api/creator/creator-get-videos', {
           withCredentials: true
         });
         // Make sure we're handling the response data correctly

@@ -95,7 +95,7 @@ function CreatorHome() {
 
   const handleLogout = useCallback(async () => {
     try {
-      await axios.get('http://localhost:3000/api/auth/logout');
+      await axios.get('https://flarep.onrender.com/api/auth/logout');
       
       window.location.href = '/login'; 
     } catch (error) {

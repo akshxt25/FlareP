@@ -198,7 +198,7 @@ const Login = () => {
 
         const endpoint = isSignup ? "api/auth/signup" : "api/auth/login";
         const response = await axios.post(
-          `http://localhost:3000/${endpoint}`,
+          `https://flarep.onrender.com/${endpoint}`,
           { ...formData, role },
           {
             withCredentials: true,
