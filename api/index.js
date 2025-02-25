@@ -21,7 +21,7 @@ const app = express();
 app.use(express.json());
 app.use(cors({
   credentials: true,
-  origin:"https://flare-p.vercel.app/login",
+  origin:"https://flare-p.vercel.app",
 }));
 app.use(fileUpload({
   useTempFiles: true,
