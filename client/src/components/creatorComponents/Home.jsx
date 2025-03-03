@@ -97,7 +97,7 @@ function CreatorHome() {
     try {
       await axios.get('https://flarep.onrender.com/api/auth/logout');
       
-      window.location.href = '/login'; 
+      window.location.href = '/app/login'; 
     } catch (error) {
       console.error('Logout failed:', error);
     }
